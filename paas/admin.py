@@ -1,3 +1,4 @@
 from django.contrib import admin
+from paas.models import MyUser
 
-# Register your models here.
+admin.site.register(MyUser)
