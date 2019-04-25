@@ -1,3 +1,11 @@
-from django.shortcuts import render
+from rest_framework import generics
+from rest_framework.permissions import IsAdminUser
+from paas.models import MyUser as User
+from paas.serializers import UserSerializer
 
-# Create your views here.
+
+class ListCreateUsersView(generics.ListCreateAPIView):
+    permission_classes = (IsAdminUser,)
+
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
