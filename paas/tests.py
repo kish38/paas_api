@@ -1,5 +1,5 @@
 from django.urls import reverse
-from rest_framework.test import APITestCase, APIClient
+from rest_framework.test import APITestCase
 from rest_framework.views import status
 from paas.serializers import UserSerializer
 from paas.models import MyUser as User
@@ -104,8 +104,7 @@ class ListResourceEndPointsTestCase(APITestCase):
     def test_list_resources_as_admin(self):
         self.client.login(email='admin@gmail.com', password='pwd12345')
         response = self.client.get(reverse('list-resources'))
-        expected = Resource.objects.filter(owner__username='test_user2')
+        expected = Resource.objects.all()
         serialized = ResourceSerializer(expected, many=True)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data, serialized.data)
-

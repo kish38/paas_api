@@ -23,4 +23,4 @@ class UserSerializer(serializers.ModelSerializer):
 class ResourceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Resource
-        fields = '__all__'
+        fields = ('id', 'owner', 'resource_value')
