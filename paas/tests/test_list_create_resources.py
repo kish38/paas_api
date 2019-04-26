@@ -1,56 +1,9 @@
 from django.urls import reverse
 from rest_framework.test import APITestCase
 from rest_framework.views import status
-from paas.serializers import UserSerializer
 from paas.models import MyUser as User
 from paas.models import Resource
 from paas.serializers import ResourceSerializer
-
-
-class UserCreateTest(APITestCase):
-
-    def setUp(self):
-        for i in range(5):
-            User.objects.create_user('test_user%s' % i, 'test%s@gmail.com' % i, password="pwd12345")
-        User.objects.create_superuser('test_user6', 'test6@gmail.com', password="pwd12345")
-
-    def test_unauthorized_user_list_users(self):
-        self.client.login(username='test_user6', password='pwd1234')
-        response = self.client.get(reverse('list-users'))
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
-
-    def test_list_users_with_platform_user(self):
-        self.client.login(email='test2@gmail.com', password='pwd12345')
-        response = self.client.get(reverse('list-users'))
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-
-    def test_list_users(self):
-        self.client.force_authenticate(user=User.objects.get(username='test_user6'))
-        response = self.client.get(reverse('list-users'))
-        users = UserSerializer(User.objects.all(), many=True)
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data, users.data)
-
-    def test_create_user_without_login(self):
-        response = self.client.post(reverse('list-users'), data={'username': 'test_user7',
-                                                                 'email': 'test7@gmail.com',
-                                                                 'password': 'pwd12345'})
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
-
-    def test_create_user_with_platform_user(self):
-        self.client.force_authenticate(user=User.objects.get(username='test_user1'))
-        response = self.client.post(reverse('list-users'), data={'username': 'test_user7',
-                                                                 'email': 'test7@gmail.com',
-                                                                 'password': 'pwd12345'})
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-
-    def test_create_user_with_admin_user(self):
-        self.client.force_authenticate(user=User.objects.get(username='test_user6'))
-        response = self.client.post(reverse('list-users'), data={'username': 'test_user7',
-                                                                 'email': 'test7@gmail.com',
-                                                                 'password': 'pwd12345'})
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
 
 class ResourceBasicTest(APITestCase):
@@ -108,3 +61,40 @@ class ListResourceEndPointsTestCase(APITestCase):
         serialized = ResourceSerializer(expected, many=True)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data, serialized.data)
+
+
+class CreateResourceEndpointTest(APITestCase):
+
+    def setUp(self):
+        user = User.objects.create_user('user1', 'user1@gmail.com', 'pwd12345')
+        Resource.objects.create(owner=user, resource_value="Test Resource1")
+        User.objects.create_superuser('admin', 'admin@gmail.com', 'pwd12345')
+
+    def test_create_resource_without_login(self):
+        response = self.client.post(reverse('list-resources'), data={'resource_value': 'Sample Resource'})
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_create_resource_with_login(self):
+        self.client.login(email='user1@gmail.com', password='pwd12345')
+        response = self.client.post(reverse('list-resources'), data={'resource_value': 'Sample Resource'})
+        expected = Resource.objects.filter(owner=response.wsgi_request.user)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(expected.count(), 2)
+
+    def test_create_resource_without_value(self):
+        self.client.login(email='user1@gmail.com', password='pwd12345')
+        response = self.client.post(reverse('list-resources'))
+        expected = Resource.objects.filter(owner=response.wsgi_request.user)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(expected.count(), 1)
+
+    def test_create_resource_admin(self):
+        self.client.login(email='admin@gmail.com', password='pwd12345')
+        user = User.objects.get(email='user1@gmail.com')
+        response = self.client.post(reverse('list-resources'), data={'resource_value': 'Sample Resource',
+                                                                     'owner': user.id})
+        expected = Resource.objects.filter(owner=user)
+        not_expected = Resource.objects.filter(owner__username='admin')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(expected.count(), 2)
+        self.assertEqual(not_expected.count(), 0)
