@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 from paas.models import MyUser as User
+from paas.models import Resource
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -9,8 +10,17 @@ class UserSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         user = User.objects.create_user(validated_data['username'], validated_data['email'], validated_data['password'])
+        if validated_data.get('quota'):
+            user.quota = validated_data['quota']
+            user.save()
         return user
 
     class Meta:
         model = User
         fields = ('id', 'email', 'username', 'password', 'quota')
+
+
+class ResourceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Resource
+        fields = '__all__'
