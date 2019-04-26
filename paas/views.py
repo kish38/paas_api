@@ -7,6 +7,7 @@ from paas.models import MyUser as User
 from paas.serializers import UserSerializer
 from paas.models import Resource
 from paas.serializers import ResourceSerializer
+from paas.serializers import ListResourceSerializer
 
 
 class ListCreateUsersView(generics.ListCreateAPIView):
@@ -19,7 +20,6 @@ class ListCreateUsersView(generics.ListCreateAPIView):
 class ListCreateResourceView(generics.ListCreateAPIView):
     permission_classes = (IsAuthenticated,)
 
-    queryset = Resource.objects.all()
     serializer_class = ResourceSerializer
 
     def get_queryset(self):
@@ -30,6 +30,11 @@ class ListCreateResourceView(generics.ListCreateAPIView):
                 resources = resources.filter(owner=owner_id)
             return resources
         return Resource.objects.filter(owner=self.request.user)
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        serializer = ListResourceSerializer(queryset, many=True)
+        return Response(serializer.data)
 
     def create(self, request, *args, **kwargs):
         data = request.data.copy()

@@ -3,7 +3,7 @@ from rest_framework.test import APITestCase
 from rest_framework.views import status
 from paas.models import MyUser as User
 from paas.models import Resource
-from paas.serializers import ResourceSerializer
+from paas.serializers import ListResourceSerializer
 
 
 class ResourceBasicTest(APITestCase):
@@ -50,7 +50,7 @@ class ListResourceEndPointsTestCase(APITestCase):
         self.client.login(email='test2@gmail.com', password='pwd12345')
         response = self.client.get(reverse('list-resources'))
         expected = Resource.objects.filter(owner__username='test_user2')
-        serialized = ResourceSerializer(expected, many=True)
+        serialized = ListResourceSerializer(expected, many=True)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data, serialized.data)
 
@@ -58,7 +58,7 @@ class ListResourceEndPointsTestCase(APITestCase):
         self.client.login(email='admin@gmail.com', password='pwd12345')
         response = self.client.get(reverse('list-resources'))
         expected = Resource.objects.all()
-        serialized = ResourceSerializer(expected, many=True)
+        serialized = ListResourceSerializer(expected, many=True)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data, serialized.data)
 

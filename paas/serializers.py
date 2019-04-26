@@ -24,3 +24,11 @@ class ResourceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Resource
         fields = ('id', 'owner', 'resource_value')
+
+
+class ListResourceSerializer(serializers.ModelSerializer):
+    owner = UserSerializer()
+
+    class Meta:
+        model = Resource
+        fields = ('id', 'owner', 'resource_value')
