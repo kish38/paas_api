@@ -3,11 +3,13 @@ from rest_framework.permissions import IsAdminUser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from rest_framework.response import Response
+from rest_framework.exceptions import ParseError
 from paas.models import MyUser as User
 from paas.serializers import UserSerializer
 from paas.models import Resource
 from paas.serializers import ResourceSerializer
 from paas.serializers import ListResourceSerializer
+from paas.permissions import ResourceOwnerReadOnly
 
 
 class ListCreateUsersView(generics.ListCreateAPIView):
@@ -49,3 +51,17 @@ class ListCreateResourceView(generics.ListCreateAPIView):
         self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+
+class ManageResource(generics.RetrieveUpdateDestroyAPIView):
+
+    permission_classes = (ResourceOwnerReadOnly, )
+
+    queryset = Resource.objects.all()
+    serializer_class = ResourceSerializer
+
+    def perform_update(self, serializer):
+        owner = serializer.validated_data.pop('owner', None)
+        if owner:
+            raise ParseError("Change owner not allowed")
+        serializer.save()
