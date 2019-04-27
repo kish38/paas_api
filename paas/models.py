@@ -6,6 +6,7 @@ import uuid
 class MyUser(AbstractUser):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     quota = models.IntegerField(null=True, blank=True)
+    quota_left = models.IntegerField(null=True, blank=True)
 
 
 class Resource(models.Model):

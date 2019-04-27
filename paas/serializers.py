@@ -20,6 +20,14 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ('id', 'email', 'username', 'password', 'quota')
 
 
+class UserQuotaSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(read_only=True)
+
+    class Meta:
+        model = User
+        fields = ('id', 'username', 'quota', 'quota_left')
+
+
 class ResourceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Resource
