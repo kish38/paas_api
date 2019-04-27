@@ -15,8 +15,17 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from rest_framework.schemas import get_schema_view
+from rest_framework_swagger.renderers import SwaggerUIRenderer
+from rest_framework_swagger.renderers import OpenAPICodec
+from rest_framework.permissions import IsAuthenticated
+
+schema_view = get_schema_view(title='PAAS API', description= "About swagger",
+                              renderer_classes=[OpenAPICodec, SwaggerUIRenderer],
+                              permission_classes=[IsAuthenticated])
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/', include('paas.urls'))
+    path('api/', include('paas.urls')),
+    path('', schema_view, name='docs')
 ]

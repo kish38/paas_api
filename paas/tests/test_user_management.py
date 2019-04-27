@@ -61,7 +61,7 @@ class UserLoginTest(APITestCase):
 
     def test_user_login_invalid_credentials(self):
         response = self.client.post(reverse('user-login'), data={'email': 'user1@gmail.com', 'password': 'fake'})
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_user_login_valid_credentials(self):
         response = self.client.post(reverse('user-login'), data={'email': 'user1@gmail.com', 'password': 'pwd12345'})

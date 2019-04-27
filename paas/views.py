@@ -7,7 +7,6 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.exceptions import ParseError
 from rest_framework.exceptions import AuthenticationFailed
-from rest_framework.decorators import api_view
 from paas.models import MyUser as User
 from paas.serializers import UserSerializer
 from paas.models import Resource
@@ -19,6 +18,12 @@ from paas.permissions import ResourceOwnerReadOnly
 
 
 class ListCreateUsersView(generics.ListCreateAPIView):
+    """
+    post:
+        Create a User
+    get:
+        List all Users
+    """
     permission_classes = (IsAdminUser,)
 
     queryset = User.objects.all()
@@ -26,6 +31,16 @@ class ListCreateUsersView(generics.ListCreateAPIView):
 
 
 class ManageUserView(generics.RetrieveUpdateDestroyAPIView):
+    """
+    get:
+        Retrieve a User based with id
+    put:
+        Update User data
+    patch:
+        Update User data
+    delete:
+        Delete a User with id
+    """
     permission_classes = (IsAdminUser,)
 
     queryset = User.objects.all()
@@ -45,6 +60,12 @@ class ManageUserView(generics.RetrieveUpdateDestroyAPIView):
 
 
 class ListCreateResourceView(generics.ListCreateAPIView):
+    """
+    post:
+        Create a Resource
+    get:
+        List all Resources
+    """
     permission_classes = (IsAuthenticated,)
 
     serializer_class = ResourceSerializer
@@ -83,6 +104,16 @@ class ListCreateResourceView(generics.ListCreateAPIView):
 
 
 class ManageResource(generics.RetrieveUpdateDestroyAPIView):
+    """
+    get:
+        Retrieve a Resource based on its id
+    put:
+        Update a Resource based on its id
+    patch:
+        Update a Resource based on its id
+    delete:
+        Delete a Resource based on its id
+    """
 
     permission_classes = (ResourceOwnerReadOnly, )
 
@@ -96,15 +127,23 @@ class ManageResource(generics.RetrieveUpdateDestroyAPIView):
         serializer.save()
 
 
-@api_view(['POST'])
-def login_view(request):
-    serializer = UserLoginSerializer(data=request.POST)
-    if serializer.is_valid():
-        user = authenticate(email=serializer.validated_data['email'],
-                            password=serializer.validated_data['password'])
-        if user:
-            login(request, user)
-            return Response(UserSerializer(user).data)
-        raise AuthenticationFailed("Invalid credentials")
-    else:
-        raise AuthenticationFailed(serializer.errors)
+class LoginView(generics.GenericAPIView):
+    """
+    post:
+        User Login with email and password
+    """
+
+    authentication_classes = ()
+    serializer_class = UserLoginSerializer
+
+    def post(self, request):
+        serializer = UserLoginSerializer(data=request.data)
+        if serializer.is_valid():
+            user = authenticate(email=serializer.validated_data['email'],
+                                password=serializer.validated_data['password'])
+            if user:
+                login(request, user)
+                return Response(UserSerializer(user).data)
+            raise AuthenticationFailed("Invalid credentials")
+        else:
+            raise AuthenticationFailed(serializer.errors)
