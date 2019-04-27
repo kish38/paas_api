@@ -32,3 +32,14 @@ class ListResourceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Resource
         fields = ('id', 'owner', 'resource_value')
+
+
+class UserLoginSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    password = serializers.CharField(write_only=True)
+
+    def create(self, validated_data):
+        pass
+
+    def update(self, instance, validated_data):
+        pass

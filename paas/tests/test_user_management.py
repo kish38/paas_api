@@ -49,3 +49,21 @@ class UserCreateTest(APITestCase):
                                                                  'email': 'test7@gmail.com',
                                                                  'password': 'pwd12345'})
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+
+class UserLoginTest(APITestCase):
+    def setUp(self):
+        User.objects.create_user('user1', 'user1@gmail.com', 'pwd12345')
+
+    def test_user_login_get(self):
+        response = self.client.get(reverse('user-login'))
+        self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def test_user_login_invalid_credentials(self):
+        response = self.client.post(reverse('user-login'), data={'email': 'user1@gmail.com', 'password': 'fake'})
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_user_login_valid_credentials(self):
+        response = self.client.post(reverse('user-login'), data={'email': 'user1@gmail.com', 'password': 'pwd12345'})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['username'], 'user1')

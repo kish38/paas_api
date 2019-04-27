@@ -1,14 +1,19 @@
+from django.contrib.auth import authenticate
+from django.contrib.auth import login
 from rest_framework import generics
 from rest_framework.permissions import IsAdminUser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.exceptions import ParseError
+from rest_framework.exceptions import AuthenticationFailed
+from rest_framework.decorators import api_view
 from paas.models import MyUser as User
 from paas.serializers import UserSerializer
 from paas.models import Resource
 from paas.serializers import ResourceSerializer
 from paas.serializers import ListResourceSerializer
+from paas.serializers import UserLoginSerializer
 from paas.permissions import ResourceOwnerReadOnly
 
 
@@ -65,3 +70,17 @@ class ManageResource(generics.RetrieveUpdateDestroyAPIView):
         if owner:
             raise ParseError("Change owner not allowed")
         serializer.save()
+
+
+@api_view(['POST'])
+def login_view(request):
+    serializer = UserLoginSerializer(data=request.POST)
+    if serializer.is_valid():
+        user = authenticate(email=serializer.validated_data['email'],
+                            password=serializer.validated_data['password'])
+        if user:
+            login(request, user)
+            return Response(UserSerializer(user).data)
+        raise AuthenticationFailed("Invalid credentials")
+    else:
+        raise AuthenticationFailed(serializer.errors)
