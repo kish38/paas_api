@@ -116,3 +116,17 @@ class UserQuotaUpdateWithResource(UserSetup):
         us = User.objects.get(email='user3@gmail.com')
         self.assertEqual(us.quota, 1)
         self.assertEqual(us.quota_left, 1)
+
+    def test_quota_exceeded(self):
+        us = User.objects.get(email='user3@gmail.com')
+        self.client.login(username='admin', password='pwd12345')
+        response = self.client.patch(reverse('get-user', args=[us.id]), data={'quota': 2})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        response = self.client.post(reverse('list-resources'), data={'owner': us.id, 'resource_value': 'Test Resource'})
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        response = self.client.post(reverse('list-resources'), data={'owner': us.id, 'resource_value': 'New Resource'})
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        response = self.client.post(reverse('list-resources'), data={'owner': us.id, 'resource_value': 'New Resource1'})
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

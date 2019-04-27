@@ -9,14 +9,13 @@ from paas.serializers import ListResourceSerializer
 class ResourceBasicTest(APITestCase):
 
     def setUp(self):
-        user = User.objects.create_user('user1', 'user1@gmail.com', 'pwd12345', quota=2)
+        user = User.objects.create_user('user1', 'user1@gmail.com', 'pwd12345')
         Resource.objects.create(owner=user, resource_value="Test Resource1")
 
     def test_resource_created(self):
         user = User.objects.get(email='user1@gmail.com')
         resources = Resource.objects.filter(owner=user)
         self.assertEqual(user.username, 'user1')
-        self.assertEqual(user.quota, 2)
         self.assertEqual(len(resources), 1)
         self.assertEqual(resources[0].owner, user)
 

@@ -71,6 +71,10 @@ class ListCreateResourceView(generics.ListCreateAPIView):
         else:
             data['owner'] = request.user.id
 
+        owner = User.objects.get(pk=data['owner'])
+        if owner.quota is not None and owner.quota_left == 0:
+            raise ParseError("User Quota Exceeded ")
+
         serializer = self.get_serializer(data=data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
