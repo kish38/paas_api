@@ -14,6 +14,7 @@ from paas.models import Resource
 from paas.serializers import ResourceSerializer
 from paas.serializers import ListResourceSerializer
 from paas.serializers import UserLoginSerializer
+from paas.serializers import UserQuotaSerializer
 from paas.permissions import ResourceOwnerReadOnly
 
 
@@ -22,6 +23,25 @@ class ListCreateUsersView(generics.ListCreateAPIView):
 
     queryset = User.objects.all()
     serializer_class = UserSerializer
+
+
+class ManageUserView(generics.RetrieveUpdateDestroyAPIView):
+    permission_classes = (IsAdminUser,)
+
+    queryset = User.objects.all()
+    serializer_class = UserQuotaSerializer
+
+    def perform_update(self, serializer):
+        user = self.get_object()
+        serializer.validated_data.pop('quota_left', None)
+        resource_count = Resource.objects.filter(owner=user).count()
+        quota = serializer.validated_data['quota']
+
+        if resource_count > quota:
+            raise ParseError("More Resources exists than quota")
+        user = serializer.save()
+        user.quota_left = quota - resource_count
+        user.save()
 
 
 class ListCreateResourceView(generics.ListCreateAPIView):
