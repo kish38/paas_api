@@ -12,6 +12,7 @@ class UserSerializer(serializers.ModelSerializer):
         user = User.objects.create_user(validated_data['username'], validated_data['email'], validated_data['password'])
         if validated_data.get('quota'):
             user.quota = validated_data['quota']
+            user.quota_left = validated_data['quota']
             user.save()
         return user
 
