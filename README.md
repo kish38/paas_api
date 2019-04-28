@@ -10,9 +10,9 @@ Django Rest Framework
 
 Django Rest Swagger
 
-All API endpoints and methods are included in Swagger document pages. All API endpoints can be tested in Swagger documentation itself.
+All API endpoints and methods are included in Swagger API documentation. All API endpoints can be tested in Swagger documentation itself.
 
-Platform admin user can filter a user's resource using ``/api/resources/?owner_id=c73217b6-6e54-4ef7-a421-65d700130caf``
+Platform admin user can filter a user's resources using owner_id filter ``/api/resources/?owner_id=c73217b6-6e54-4ef7-a421-65d700130caf``
 
 
 ### Sample Login Credentials
